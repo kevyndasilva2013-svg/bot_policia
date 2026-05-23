@@ -5,13 +5,13 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading
 import os
 
-# --- SERVIDOR WEB PARA O UPTIMEROBOT (EVITA ERRO 501 HEAD) ---
+# --- SERVIDOR WEB INTELIGENTE PARA EVITAR ERRO 502 E 501 ---
 class WebServerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/html; charset=utf-8')
         self.end_headers()
-        self.wfile.write("🚓 Corregedoria Policial Online 24/7!".encode('utf-8'))
+        self.wfile.write("🚓 Corregedoria Policial Online!".encode('utf-8'))
 
     def do_HEAD(self):
         self.send_response(200)
@@ -19,15 +19,17 @@ class WebServerHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def log_message(self, format, *args):
-        return
+        return  # Desativa logs pesados no terminal para rodar mais rápido
 
 def iniciar_servidor_web():
-    porta = int(os.environ.get("PORT", 8080))
+    # A Render exige ler a porta da variável de ambiente, se não achar usa a 10000 padrão deles
+    porta = int(os.environ.get("PORT", 10000))
     server_address = ('0.0.0.0', porta)
     httpd = HTTPServer(server_address, WebServerHandler)
-    print(f"🌐 Servidor Web ativo na porta {porta}.")
+    print(f"🌐 Servidor de Redirecionamento ativo na porta {porta}.")
     httpd.serve_forever()
 
+# Iniciamos o servidor web antes de qualquer coisa para a Render validar o IP na hora
 threading.Thread(target=iniciar_servidor_web, daemon=True).start()
 
 # --- CONFIGURAÇÃO DO BOT DISCORD ---
@@ -37,7 +39,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="?", intents=intents)
 
-# 💾 SEU CANAL CORRETO ATUALIZADO
+# 💾 CONFIGURAÇÕES FIXAS
 ID_CANAL_LOGS_AUDITORIA = 1507611818347200613
 LOGO_POLICIA_URL = "https://raw.githubusercontent.com/KevynDaSilva/bot_fvm_logs/main/assets/image_13.png" 
 
@@ -80,75 +82,4 @@ async def on_message_delete(message):
 # --- 2. LOGS DE MENSAGEM: EDITADA ---
 @bot.event
 async def on_message_edit(before, after):
-    if before.author.bot or before.content == after.content or not before.guild:
-        return
-
-    canal_logs = before.guild.get_channel(ID_CANAL_LOGS_AUDITORIA)
-    if canal_logs:
-        embed = discord.Embed(
-            title="✏️ Relatório: Mensagem Editada",
-            description="Uma transmissão foi alterada após o envio.",
-            color=COR_AVISO,
-            timestamp=datetime.utcnow()
-        )
-        embed.set_author(name=f"{before.author.name} (ID: {before.author.id})", icon_url=before.author.display_avatar.url)
-        embed.set_thumbnail(url=LOGO_POLICIA_URL)
-        
-        embed.add_field(name="👤 Autor", value=before.author.mention, inline=True)
-        embed.add_field(name="📍 Canal", value=before.channel.mention, inline=True)
-        embed.add_field(name="🔗 Link da Mensagem", value=f"[Ir para Mensagem]({after.jump_url})", inline=True)
-
-        embed.add_field(name="🛑 Conteúdo Original", value=f"```text\n{before.content}\n```", inline=False)
-        embed.add_field(name="✅ Novo Conteúdo", value=f"```text\n{after.content}\n```", inline=False)
-        
-        await canal_logs.send(embed=embed)
-
-# --- 3. LOGS DE MEMBRO: SAIU DO SERVIDOR ---
-@bot.event
-async def on_member_remove(member):
-    canal_logs = member.guild.get_channel(ID_CANAL_LOGS_AUDITORIA)
-    if canal_logs:
-        embed = discord.Embed(
-            title="🏃 Membro Saiu do QAP",
-            description="Um membro deslogou do servidor do Discord.",
-            color=COR_AVISO,
-            timestamp=datetime.utcnow()
-        )
-        embed.set_thumbnail(url=LOGO_POLICIA_URL)
-        
-        embed.add_field(name="👤 Usuário", value=f"{member.mention}\n`{member.name}`", inline=True)
-        embed.add_field(name="🆔 ID", value=f"`{member.id}`", inline=True)
-        
-        cargos = [role.mention for role in member.roles if role != member.guild.default_role]
-        lista_cargos = ", ".join(cargos) if cargos else "Nenhum cargo ativo"
-        embed.add_field(name="🎖️ Patentes e Especializações", value=lista_cargos, inline=False)
-        
-        await canal_logs.send(embed=embed)
-
-# --- 4. LOGS DE MEMBRO: ENTROU NO SERVIDOR ---
-@bot.event
-async def on_member_join(member):
-    canal_logs = member.guild.get_channel(ID_CANAL_LOGS_AUDITORIA)
-    if canal_logs:
-        embed = discord.Embed(
-            title="📥 Novo Membro Apresentado",
-            description="Um novo usuário se apresentou no servidor.",
-            color=COR_SUCESSO,
-            timestamp=datetime.utcnow()
-        )
-        embed.set_thumbnail(url=LOGO_POLICIA_URL)
-        
-        embed.add_field(name="👤 Usuário", value=f"{member.mention}\n`{member.name}`", inline=True)
-        embed.add_field(name="🆔 ID", value=f"`{member.id}`", inline=True)
-        
-        criacao_conta = member.created_at.strftime("%d/%m/%Y às %H:%M")
-        idade_conta = datetime.utcnow() - member.created_at.replace(tzinfo=None)
-        
-        embed.add_field(name="📅 Conta Criada em", value=criacao_conta, inline=True)
-        embed.add_field(name="⏳ Idade da Conta", value=f"{idade_conta.days} dias", inline=True)
-        
-        await canal_logs.send(embed=embed)
-
-# 🔐 PUXA O TOKEN DE FORMA INVISÍVEL E SEGURO DIRETO DA RENDER
-TOKEN = os.environ.get("DISCORD_TOKEN")
-bot.run(TOKEN)
+    if before.author.
