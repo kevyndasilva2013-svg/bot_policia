@@ -82,4 +82,5 @@ async def on_message_delete(message):
 # --- 2. LOGS DE MENSAGEM: EDITADA ---
 @bot.event
 async def on_message_edit(before, after):
-    if before.author.
+    if before.author.bot or before.content == after.content or not before.guild:
+        return
