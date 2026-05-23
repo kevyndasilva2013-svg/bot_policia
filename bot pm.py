@@ -7,13 +7,19 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import config
 from cogs_batalhao.cogs_batalhao import PainelPontoView, CogsBatalhao
 
-# --- SERVIDOR WEB PARA A RENDER ---
+# --- SERVIDOR WEB PARA A RENDER & UPTIME (CORRIGIDO) ---
 class MutedWebServer(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
         self.wfile.write(b"Bot Online")
+        
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        
     def log_message(self, format, *args): return
 
 def run_web_server():
